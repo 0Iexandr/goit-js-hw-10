@@ -1,5 +1,6 @@
 import './css/styles.css';
 import Notiflix from 'notiflix';
+import { fetchCountries } from './countries';
 
 const DEBOUNCE_DELAY = 300;
 const debounce = require('lodash.debounce');
@@ -7,36 +8,24 @@ const input = document.querySelector('#search-box');
 const countryList = document.querySelector('.country-list');
 const countryInfo = document.querySelector('.country-info');
 
-function fetchCountries(name) {
-    return (
-        fetch(
-        `https://restcountries.com/v3.1/name/${name}?fields=name,capital,population,flags,languages`
-        )
-        .then(response => {
-            if (!response.ok) {
-            throw new Error(response.status);
-            }
-            return response.json();
-        })
-        .catch(() => {
-            Notiflix.Notify.failure('Oops, there is no country with that name');
-            countryList.innerHTML = '';
-            countryInfo.innerHTML = '';
-        })
-    )
-}
-
 input.addEventListener('input', debounce(handleInput, DEBOUNCE_DELAY));
 
 function handleInput() {
-  if (input.value.trim().length) {
-    fetchCountries(input.value.trim()).then(countries =>
-      renderCountries(countries)
-    );
-  } else {
+  if (!input.value.trim().length) {
     countryList.innerHTML = '';
     countryInfo.innerHTML = '';
+    return;
   }
+
+  fetchCountries(input.value.trim())
+  .then(countries =>
+    renderCountries(countries)
+  )
+  .catch(() => {
+    Notiflix.Notify.failure('Oops, there is no country with that name');
+    countryList.innerHTML = '';
+    countryInfo.innerHTML = '';
+  })
 }
 
 function renderCountries(countries) {
